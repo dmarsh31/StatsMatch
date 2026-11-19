@@ -18,6 +18,7 @@ def index():
     status = 200
     page = request.args.get('page', 1, type=int)
     state = load_search_progress(query) if query else {}
+    start_api = request.args.get('load_api') == '1' and not state and page == 1
     next_page = None
     
     if query:
@@ -31,7 +32,7 @@ def index():
             error, status = 'Start a new search before loading the next page.', 400
         elif repeated:
             paging = {'current': state['page'], 'total': state['total']}
-        elif matches and not continuing:
+        elif matches and not continuing and not start_api:
             if state:
                 paging = {'current': state['page'], 'total': state['total']}
         elif not query.strip() or len(query) < 4:
@@ -58,6 +59,8 @@ def index():
                 error, status = 'Unable to save players. Please try again.', 500
         if state.get('page', 0) < state.get('total', 0):
             next_page = state['page'] + 1
+        elif not state and matches and query.strip() and len(query) >= 4:
+            next_page = 1
     return render_template(
         'search.html', title='Player directory', query=query,
         players=matches, total_players=len(load_players()), error=error, paging=paging,

@@ -2,7 +2,11 @@
 {% block content %}
 <a class="back" href="{{ url_for('search.index', q=query) }}">← Back to search results</a>
 <section class="profile">
+    {% if player.photo %}
+    <img class="avatar large" src="{{ player.photo }}" alt="{{ player.name }}" width="100" height="100">
+    {% else %}
     <span class="avatar large">{% for name in player.name.split() %}{{ name[0] }}{% endfor %}</span>
+    {% endif %}
     <div>
         <p class="eyebrow">{{ player.position }}</p>
         <h1>{{ player.name }}</h1>

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="intro">
+    <div>
+        <p class="eyebrow">SIDE BY SIDE</p>
+        <h1>Compare players</h1>
+        <p class="muted">Combined stats across all competitions · {{ season }} season</p>
+    </div>
+</div>
+<form method="get" action="{{ url_for('explore.compare') }}" class="search">
+    <div class="compare-selectors">
+        {% for index in [0, 1] %}
+        <div>
+            <label for="player{{ index + 1 }}">Player {{ index + 1 }}</label>
+            <select id="player{{ index + 1 }}" name="player{{ index + 1 }}" required>
+                <option value="">Select a player</option>
+                {% for player in players %}
+                <option value="{{ player.id }}"{% if selected[index] == player.id %} selected{% endif %}>{{ player.name }} ({{ player.country or 'Unknown nationality' }}) — #{{ player.id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endfor %}
+        <button type="submit"{% if players|length < 2 %} disabled{% endif %}>Compare players</button>
+    </div>
+    <p class="muted">Choose from saved players. Search the player directory to add more.</p>
+</form>
+{% if error %}<p class="empty" role="alert">{{ error }}</p>{% endif %}
+{% if columns %}
+<div class="results"><h2>Season comparison</h2></div>
+<p class="muted">* Some competition data is missing. A dash means no data is available. Ratings and pass accuracy use the same averages as the detail page.</p>
+<div class="tablewrap">
+    <table class="comparison">
+        <thead>
+            <tr>
+                <th scope="col">Statistic</th>
+                {% for column in columns %}
+                <th scope="col">
+                    <a class="player" href="{{ url_for('detail.show', player_id=column.player.id) }}">
+                        {% if column.player.photo %}<img class="avatar" src="{{ column.player.photo }}" width="39" height="39" alt="">{% endif %}
+                        {{ column.player.name }}
+                    </a>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">Position</th>
+                {% for column in columns %}<td>{{ column.player.position or '—' }}</td>{% endfor %}
+            </tr>
+            <tr>
+                <th scope="row">Statistics status</th>
+                {% for column in columns %}<td>{% if column.error %}<span role="alert">{{ column.error }}</span>{% elif not column.stat %}No stats available for {{ season }}.{% else %}Available{% endif %}</td>{% endfor %}
+            </tr>
+            {% for label, group, field in metrics %}
+            <tr>
+                <th scope="row">{{ label }}</th>
+                {% for column in columns %}
+                {% set value = column.stat[group][field] if column.stat else none %}
+                <td>{{ value if value is not none else '—' }}{% if value is not none and column.stat.partial[group][field] %}<sup title="Some competition data is missing">*</sup>{% endif %}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            {% for field, label in [('total', 'Goals / 90'), ('assists', 'Assists / 90')] %}
+            <tr>
+                <th scope="row">{{ label }}</th>
+                {% for column in columns %}
+                {% set stat = column.stat %}
+                {% set rate = per_90(stat.goals[field], stat.games.minutes) if stat else '—' %}
+                <td>{{ rate }}{% if rate != '—' and (stat.partial.goals[field] or stat.partial.games.minutes) %}<sup title="Some competition data is missing">*</sup>{% endif %}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif not error %}
+<div class="empty"><h2>Select two players to get started</h2></div>
+{% endif %}
+{% endblock %}

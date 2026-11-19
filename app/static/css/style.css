@@ -502,3 +502,48 @@ footer {
 img.avatar {
     object-fit: cover;
 }
+
+/* Player comparison */
+.compare-selectors {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.compare-selectors > div {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.compare-selectors select {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+}
+
+.comparison {
+    table-layout: fixed;
+    min-width: 600px;
+    white-space: normal;
+}
+
+.comparison th,
+.comparison td {
+    width: 33.333%;
+    overflow-wrap: anywhere;
+}
+
+.comparison tbody th {
+    border-top: 1px solid var(--line);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

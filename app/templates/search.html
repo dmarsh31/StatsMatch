@@ -64,6 +64,7 @@
 <form action="{{ url_for('search.index') }}" method="get" class="results">
     <input type="hidden" name="q" value="{{ query }}">
     <input type="hidden" name="page" value="{{ next_page }}">
+    {% if next_page == 1 %}<input type="hidden" name="load_api" value="1">{% endif %}
     <button type="submit">Load more</button>
 </form>
 {% endif %}

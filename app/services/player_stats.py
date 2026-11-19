@@ -3,6 +3,25 @@ import csv
 import json
 
 from . import players
+from .api_football import PlayerAPIError, get_player_statistics
+
+DEFAULT_SEASON = 2024
+
+
+def get_cached_statistics(player_id, api_key, season=DEFAULT_SEASON):
+    statistics = load_player_statistics(player_id, season)
+    if statistics is None:
+        if not api_key:
+            raise PlayerAPIError('Season statistics are unavailable. Configure API_FOOTBALL_KEY.')
+        data = get_player_statistics(player_id, api_key, season)
+        statistics = save_player_statistics(player_id, data['response'], season)
+    return statistics
+
+
+def per_90(total, minutes):
+    if total is None or not minutes:
+        return '—'
+    return f'{float(total) * 90 / float(minutes):.2f}'
 
 FIELDS = ('player_id', 'season', 'team_id', 'team_name', 'league_id', 'league_name',
           'statistics_json')

@@ -32,7 +32,7 @@ def load_search_progress(query):
         if path.exists():
             with path.open(encoding='utf-8', newline='') as file:
                 for row in csv.DictReader(file):
-                    if row['query'] == query.strip().casefold():
+                    if row['query'] == query.casefold():
                         return {'page': int(row['page']), 'total': int(row['total'])}
     return {}
 
@@ -44,7 +44,7 @@ def save_search_progress(query, page, total):
         if path.exists():
             with path.open(encoding='utf-8', newline='') as file:
                 rows = {row['query']: row for row in csv.DictReader(file)}
-        key = query.strip().casefold()
+        key = query.casefold()
         rows[key] = {'query': key, 'page': page, 'total': total}
         _write_rows(path, ('query', 'page', 'total'), rows.values())
 

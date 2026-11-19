@@ -38,7 +38,7 @@ def show(player_id):
         error, status = 'Unable to read or save season statistics. Please try again.', 500
     return render_template(
         'detail.html', title=player['name'], player=player,
-        query=request.args.get('q', '').strip(),
+        query=request.args.get('q', ''),
         statistics=statistics or [], metrics=METRICS, season=season, error=error,
         per_90=per_90,
     ), status

@@ -10,7 +10,7 @@ search_page = Blueprint('search', __name__)
 
 @search_page.get('/')
 def index():
-    query = request.args.get('q', '').strip()
+    query = request.args.get('q', '')
     saved_players = load_players()
     matches = sorted(saved_players, key=lambda player: int(player['id']))[:20] if not query else []
     error = None
@@ -19,6 +19,7 @@ def index():
     page = request.args.get('page', 1, type=int)
     state = load_search_progress(query) if query else {}
     next_page = None
+    
     if query:
         matches = [player for player in saved_players
                    if query.casefold() in player['name'].casefold()]
@@ -33,7 +34,7 @@ def index():
         elif matches and not continuing:
             if state:
                 paging = {'current': state['page'], 'total': state['total']}
-        elif len(query) < 4:
+        elif not query.strip() or len(query) < 4:
             error, status = 'No saved players match. Enter at least 4 characters to search the API.', 400
         elif not current_app.config.get('API_FOOTBALL_KEY'):
             error, status = 'Player search is unavailable. Set API_FOOTBALL_KEY before starting the app.', 503

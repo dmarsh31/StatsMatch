@@ -8,8 +8,8 @@ players_api = Blueprint('players_api', __name__, url_prefix='/api')
 
 @players_api.get('/players')
 def search_players():
-    name = request.args.get('name', '').strip()
-    if len(name) < 4:
+    name = request.args.get('name', '')
+    if not name.strip() or len(name) < 4:
         return jsonify(error='Provide a player name with at least 4 characters.'), 400
 
     api_key = current_app.config.get('API_FOOTBALL_KEY')

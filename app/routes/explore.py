@@ -5,6 +5,7 @@ from ..services.api_football import PlayerAPIError
 from ..services.player_stats import (
     DEFAULT_SEASON, METRICS, get_cached_statistics, combine_player_statistics, per_90,
 )
+from ..services.similarity import build_similarity_map
 
 explore_pages = Blueprint('explore', __name__)
 
@@ -44,5 +45,14 @@ def compare():
 
 @explore_pages.get('/similarity-map')
 def similarity_map():
-    return render_template('wip.html', title='Similarity map',
-                           description='Explore players with similar stats using K-means clustering.')
+    clusters = max(2, min(8, request.args.get('clusters', 2, type=int)))
+    minimum_minutes = max(1, min(10000, request.args.get('minutes', 90, type=int)))
+    try:
+        model = build_similarity_map(clusters, minimum_minutes)
+    except (OSError, ValueError, KeyError, TypeError):
+        current_app.logger.exception('Unable to build similarity map')
+        return render_template('similarity_map.html', title='Similarity map',
+                               model={'points': [], 'message': 'Unable to read saved statistics. Please check the CSV data.', 'season': DEFAULT_SEASON, 'cached': 0, 'eligible': 0},
+                               clusters=clusters, minimum_minutes=minimum_minutes), 500
+    return render_template('similarity_map.html', title='Similarity map', model=model,
+                           clusters=clusters, minimum_minutes=minimum_minutes)

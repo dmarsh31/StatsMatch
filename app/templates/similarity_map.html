@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="intro">
+    <div>
+        <p class="eyebrow">FIND A SIMILAR STYLE</p>
+        <h1>Similarity map</h1>
+        <p class="muted">Explore combined {{ model.season }} season stats from saved players.</p>
+        <p class="muted">Players only appear on this map when you have opened their detail page and have enough statistics to compare.</p>
+    </div>
+    <div class="count"><strong>{{ model.points|length }}</strong><span>players on the map</span></div>
+</div>
+<form class="search map-controls" method="get">
+    <div><label for="clusters">K-means groups</label><input id="clusters" name="clusters" type="number" min="2" max="8" value="{{ clusters }}" required></div>
+    <div><label for="minutes">Minimum minutes</label><input id="minutes" name="minutes" type="number" min="1" max="10000" value="{{ minimum_minutes }}" required></div>
+    <button>Update map</button>
+</form>
+{% if model.message %}
+<div class="empty"><h2>More saved stats needed</h2><p>{{ model.message }}</p><a href="{{ url_for('search.index') }}">Browse players</a></div>
+{% else %}
+<div class="results"><h2>{{ model.clusters }} groups · {{ model.points|length }} players</h2><span class="muted">{{ model.cached }} players have cached stats</span></div>
+<p class="muted">Select a player to view their details. Drag to pan, scroll to zoom, or use the zoom buttons.</p>
+<div class="map-layout">
+    <div class="map-panel">
+        <div class="map-toolbar"><button type="button" id="zoom-in" aria-label="Zoom in">+</button><button type="button" id="zoom-out" aria-label="Zoom out">−</button><button type="button" id="map-reset">Reset view</button></div>
+        <svg id="similarity-plot" viewBox="0 0 900 560" role="group" aria-label="Player similarity map. Tab to a player and press Enter to select.">
+            <title>Player similarity map</title>
+            <g id="map-points"></g>
+        </svg>
+        <div id="map-legend" class="map-legend" aria-label="Cluster legend"></div>
+    </div>
+    <aside class="search" id="map-selection" aria-live="polite"><h2>Select a player</h2><p class="muted">Choose a point on the map.</p></aside>
+</div>
+<script id="similarity-data" type="application/json">{{ model|tojson }}</script>
+<script src="{{ url_for('static', filename='js/similarity.js') }}" defer></script>
+{% endif %}
+{% endblock %}

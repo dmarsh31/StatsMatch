@@ -105,6 +105,16 @@ def load_player_statistics(player_id, season=2024):
     return [json.loads(row['statistics_json']) for row in rows if row['statistics_json']]
 
 
+def load_saved_statistics(season=DEFAULT_SEASON):
+    """Load all cached competition blocks for a season with one CSV read."""
+    grouped = {}
+    with players._lock:
+        for row in _load_rows():
+            if row['season'] == str(season) and row['statistics_json']:
+                grouped.setdefault(row['player_id'], []).append(json.loads(row['statistics_json']))
+    return grouped
+
+
 def save_player_statistics(player_id, response, season=2024):
     statistics = [stat for entry in response
                   if str((entry.get('player') or {}).get('id')) == str(player_id)

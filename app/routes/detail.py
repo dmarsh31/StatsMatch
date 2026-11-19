@@ -2,7 +2,9 @@
 from flask import Blueprint, current_app, render_template, request
 from ..services.players import load_players
 from ..services.api_football import PlayerAPIError, get_player_statistics
-from ..services.player_stats import METRICS, load_player_statistics, save_player_statistics
+from ..services.player_stats import (
+    METRICS, load_player_statistics, save_player_statistics, combine_player_statistics,
+)
 
 detail_page = Blueprint('detail', __name__)
 
@@ -39,6 +41,6 @@ def show(player_id):
     return render_template(
         'detail.html', title=player['name'], player=player,
         query=request.args.get('q', ''),
-        statistics=statistics or [], metrics=METRICS, season=season, error=error,
+        stat=combine_player_statistics(statistics or []), metrics=METRICS, season=season, error=error,
         per_90=per_90,
     ), status

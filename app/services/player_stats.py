@@ -38,6 +38,36 @@ METRICS = (
 )
 
 
+def combine_player_statistics(statistics):
+    """Sum season counts; average ratings/accuracy by minutes played."""
+    if not statistics:
+        return None
+    combined = {'partial': {}}
+    for _, group, field in METRICS:
+        values = [(stat.get(group) or {}).get(field) for stat in statistics]
+        available = [item for item in values if item is not None]
+        partial = bool(available) and len(available) < len(values)
+        value = None
+        if group == 'games' and field == 'rating' or group == 'passes' and field == 'accuracy':
+            weighted = []
+            for stat, item in zip(statistics, values):
+                minutes = (stat.get('games') or {}).get('minutes')
+                if item is not None and minutes is not None and float(minutes) > 0:
+                    weighted.append((float(item), float(minutes)))
+            if weighted:
+                value = round(sum(item * weight for item, weight in weighted)
+                              / sum(weight for _, weight in weighted), 2)
+                partial = partial or len(weighted) < len(available)
+            elif available:
+                value = round(sum(float(item) for item in available) / len(available), 2)
+                partial = True
+        elif available:
+            value = sum(int(item) for item in available)
+        combined.setdefault(group, {})[field] = value
+        combined['partial'].setdefault(group, {})[field] = partial
+    return combined
+
+
 def _load_rows():
     path = players.DATA_FILE.with_name('player_stats.csv')
     if not path.exists():

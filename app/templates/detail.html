@@ -15,19 +15,20 @@
 </div>
 {% if error %}
 <p class="empty" role="alert">{{ error }}</p>
-{% elif not statistics %}
+{% elif not stat %}
 <p class="empty">No season statistics are available for this player in {{ season }}.</p>
 {% endif %}
-{% for stat in statistics %}
-<section aria-label="{{ (stat.get('league') or {}).get('name', 'Competition') }} statistics">
+{% if stat %}
+<section aria-label="Combined season statistics">
     <div class="results">
-        <h2>{{ (stat.get('team') or {}).get('name') or 'Team unavailable' }}</h2>
-        <span class="muted">{{ (stat.get('league') or {}).get('name') or 'Competition unavailable' }}</span>
+        <h2>All competitions</h2>
+        <span class="muted">Combined season totals</span>
     </div>
+    <p class="muted">Totals include available competition data. * Some competition data is missing. A dash means no data is available. Rating and pass accuracy are weighted by available minutes, or averaged without weights when minutes are unavailable.</p>
     <div class="stats">
         {% for label, group, field in metrics %}
         {% set value = (stat.get(group) or {}).get(field) %}
-        <div class="stat"><span>{{ label }}</span><strong>{{ value if value is not none else '—' }}</strong></div>
+        <div class="stat"><span>{{ label }}</span><strong>{{ value if value is not none else '—' }}{% if value is not none and stat.partial[group][field] %}<sup title="Some competition data is missing">*</sup>{% endif %}</strong></div>
         {% endfor %}
     </div>
     <div class="per90">
@@ -36,9 +37,11 @@
             <h2>Every 90 minutes</h2>
             <p class="muted">Goals and assists adjusted for playing time.</p>
         </div>
-        <div><strong>{{ per_90((stat.get('goals') or {}).get('total'), (stat.get('games') or {}).get('minutes')) }}</strong><span>Goals / 90</span></div>
-        <div><strong>{{ per_90((stat.get('goals') or {}).get('assists'), (stat.get('games') or {}).get('minutes')) }}</strong><span>Assists / 90</span></div>
+        {% for field, label in [('total', 'Goals / 90'), ('assists', 'Assists / 90')] %}
+        {% set rate = per_90(stat.goals[field], stat.games.minutes) %}
+        <div><strong>{{ rate }}{% if rate != '—' and (stat.partial.goals[field] or stat.partial.games.minutes) %}<sup title="Some competition data is missing">*</sup>{% endif %}</strong><span>{{ label }}</span></div>
+        {% endfor %}
     </div>
 </section>
-{% endfor %}
+{% endif %}
 {% endblock %}
